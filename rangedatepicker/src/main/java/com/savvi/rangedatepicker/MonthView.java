@@ -3,6 +3,7 @@ package com.savvi.rangedatepicker;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -11,7 +12,6 @@ import android.widget.TextView;
 
 import java.text.DateFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -24,7 +24,6 @@ public class MonthView extends LinearLayout {
   private boolean isRtl;
   private Locale locale;
 
-  ArrayList<Integer> deactivatedDates;
   public static MonthView create(ViewGroup parent, LayoutInflater inflater,
       DateFormat weekdayNameFormat, Listener listener, Calendar today, int dividerColor,
       int dayBackgroundResId, int dayTextColorResId, int titleTextColor, boolean displayHeader,
@@ -102,7 +101,7 @@ public class MonthView extends LinearLayout {
   }
 
   public void init(MonthDescriptor month, List<List<MonthCellDescriptor>> cells,
-      boolean displayOnly, Typeface titleTypeface, Typeface dateTypeface, ArrayList<Integer> deactivatedDates) {
+      boolean displayOnly, Typeface titleTypeface, Typeface dateTypeface, @Nullable List<Integer> deactivatedDates) {
     Logr.d("Initializing MonthView (%d) for %s", System.identityHashCode(this), month);
     long start = System.currentTimeMillis();
     title.setText(month.getLabel());
@@ -126,13 +125,13 @@ public class MonthView extends LinearLayout {
           }
           cellView.setEnabled(cell.isCurrentMonth());
           int dayOfWeek = c+1;
-          if(deactivatedDates.contains(dayOfWeek))
+          if(deactivatedDates != null && deactivatedDates.contains(dayOfWeek))
             cellView.setClickable(false);
           else
             cellView.setClickable(!displayOnly);
 
 
-            if(deactivatedDates.contains(dayOfWeek))
+            if(deactivatedDates != null && deactivatedDates.contains(dayOfWeek))
             {
                 cellView.setSelectable(cell.isSelectable());
                 cellView.setSelected(false);

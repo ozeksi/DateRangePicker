@@ -8,6 +8,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,7 +67,7 @@ public class CalendarPickerView extends ListView {
   final List<MonthCellDescriptor> highlightedCells = new ArrayList<>();
   final List<Calendar> selectedCals = new ArrayList<>();
   final List<Calendar> highlightedCals = new ArrayList<>();
-  ArrayList<Integer> deactivatedDates ;
+  @Nullable List<Integer> deactivatedDates;
   private Locale locale;
   private TimeZone timeZone;
   private DateFormat monthNameFormat;
@@ -496,7 +497,7 @@ public class CalendarPickerView extends ListView {
       calendar.setTime(clickedDate);
 
       int day = calendar.get(DAY_OF_WEEK);
-      if(deactivatedDates.contains(day)){
+      if(deactivatedDates != null && deactivatedDates.contains(day)){
         return;
       }
 
@@ -705,7 +706,7 @@ public class CalendarPickerView extends ListView {
     validateAndUpdate();
   }
 
-  public void deactivateDates(ArrayList<Integer> deactivatedDates){
+  public void deactivateDates(List<Integer> deactivatedDates){
     this.deactivatedDates = deactivatedDates;
     validateAndUpdate();
   }
