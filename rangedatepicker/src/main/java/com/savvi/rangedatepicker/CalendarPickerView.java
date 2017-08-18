@@ -8,6 +8,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -174,7 +175,7 @@ public class CalendarPickerView extends ListView {
    * @param maxDate Latest selectable date, exclusive.  Must be later than {@code minDate}.
    */
   @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-  public FluentInitializer init(Date minDate, Date maxDate, TimeZone timeZone, Locale locale) {
+  public FluentInitializer init(@NonNull Date minDate, @NonNull Date maxDate, TimeZone timeZone, Locale locale, @Nullable SimpleDateFormat monthNameFormat, @Nullable SimpleDateFormat weekdayNameFormat) {
     if (minDate == null || maxDate == null) {
       throw new IllegalArgumentException(
           "minDate and maxDate must be non-null.  " + dbg(minDate, maxDate));
@@ -197,14 +198,12 @@ public class CalendarPickerView extends ListView {
     minCal = Calendar.getInstance(timeZone, locale);
     maxCal = Calendar.getInstance(timeZone, locale);
     monthCounter = Calendar.getInstance(timeZone, locale);
-    monthNameFormat =
-        new SimpleDateFormat("LLLL", locale);
+    monthNameFormat = monthNameFormat == null ? new SimpleDateFormat("LLLL", locale) : monthNameFormat;
     monthNameFormat.setTimeZone(timeZone);
     for (MonthDescriptor month : months) {
       month.setLabel(monthNameFormat.format(month.getDate()));
     }
-    weekdayNameFormat =
-        new SimpleDateFormat("E", locale);
+    weekdayNameFormat = weekdayNameFormat == null ? new SimpleDateFormat("E", locale) : weekdayNameFormat;
     weekdayNameFormat.setTimeZone(timeZone);
     fullDateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, locale);
     fullDateFormat.setTimeZone(timeZone);
@@ -251,18 +250,18 @@ public class CalendarPickerView extends ListView {
   }
 
 
-  public FluentInitializer init(Date minDate, Date maxDate) {
-    return init(minDate, maxDate, TimeZone.getDefault(), Locale.getDefault());
+  public FluentInitializer init(@NonNull Date minDate, @NonNull Date maxDate) {
+    return init(minDate, maxDate, TimeZone.getDefault(), Locale.getDefault(), null, null);
   }
 
 
-  public FluentInitializer init(Date minDate, Date maxDate, TimeZone timeZone) {
-    return init(minDate, maxDate, timeZone, Locale.getDefault());
+  public FluentInitializer init(@NonNull Date minDate, @NonNull Date maxDate, TimeZone timeZone) {
+    return init(minDate, maxDate, timeZone, Locale.getDefault(), null, null);
   }
 
 
-  public FluentInitializer init(Date minDate, Date maxDate, Locale locale) {
-    return init(minDate, maxDate, TimeZone.getDefault(), locale);
+  public FluentInitializer init(@NonNull Date minDate, @NonNull Date maxDate, Locale locale) {
+    return init(minDate, maxDate, TimeZone.getDefault(), locale, null, null);
   }
 
   public class FluentInitializer {
@@ -310,8 +309,7 @@ public class CalendarPickerView extends ListView {
     public FluentInitializer setShortWeekdays(String[] newShortWeekdays) {
       DateFormatSymbols symbols = new DateFormatSymbols(locale);
       symbols.setShortWeekdays(newShortWeekdays);
-      weekdayNameFormat =
-          new SimpleDateFormat("E", symbols);
+      weekdayNameFormat = new SimpleDateFormat("E", symbols);
       return this;
     }
 
