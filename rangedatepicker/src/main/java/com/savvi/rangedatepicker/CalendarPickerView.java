@@ -8,6 +8,8 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,7 +68,7 @@ public class CalendarPickerView extends ListView {
   final List<MonthCellDescriptor> highlightedCells = new ArrayList<>();
   final List<Calendar> selectedCals = new ArrayList<>();
   final List<Calendar> highlightedCals = new ArrayList<>();
-  ArrayList<Integer> deactivatedDates ;
+  List<Integer> deactivatedDates ;
   private Locale locale;
   private TimeZone timeZone;
   private DateFormat monthNameFormat;
@@ -468,7 +470,7 @@ public class CalendarPickerView extends ListView {
   public List<Date> getSelectedDates() {
     List<Date> selectedDates = new ArrayList<>();
     for (MonthCellDescriptor cal : selectedCells) {
-      if(!highlightedCells.contains(cal))
+//      if(!highlightedCells.contains(cal))
         selectedDates.add(cal.getDate());
     }
     Collections.sort(selectedDates);
@@ -492,17 +494,17 @@ public class CalendarPickerView extends ListView {
     @Override public void handleClick(MonthCellDescriptor cell) {
       Date clickedDate = cell.getDate();
 
-      if(highlightedCells.contains(cell)){
-        return;
-      }
+//      if(highlightedCells.contains(cell)){
+//        return;
+//      }
 
       Calendar calendar = Calendar.getInstance();
       calendar.setTime(clickedDate);
 
-      int day = calendar.get(DAY_OF_WEEK);
-      if(deactivatedDates != null && deactivatedDates.contains(day)){
-        return;
-      }
+//      int day = calendar.get(DAY_OF_WEEK);
+//      if(deactivatedDates != null && deactivatedDates.contains(day)){
+//        return;
+//      }
 
       if (cellClickInterceptor != null && cellClickInterceptor.onCellClicked(clickedDate)) {
         return;
@@ -615,9 +617,10 @@ public class CalendarPickerView extends ListView {
                   && singleCell.getDate().before(end)
                   && singleCell.isSelectable()) {
                 if(highlightedCells.contains(singleCell)){
-                  singleCell.setSelected(false);
-                  singleCell.setUnavailable(true);
-                  singleCell.setHighlighted(false);
+                  singleCell.setSelected(true);
+//                  singleCell.setUnavailable(true);
+                  singleCell.setHighlighted(true);
+                  singleCell.setRangeState(RangeState.MIDDLE);
                   selectedCells.add(singleCell);
                 }else {
                   singleCell.setSelected(true);
