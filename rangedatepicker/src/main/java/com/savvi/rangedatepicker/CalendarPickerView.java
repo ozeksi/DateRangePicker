@@ -66,7 +66,7 @@ public class CalendarPickerView extends ListView {
   final List<MonthCellDescriptor> highlightedCells = new ArrayList<>();
   final List<Calendar> selectedCals = new ArrayList<>();
   final List<Calendar> highlightedCals = new ArrayList<>();
-  ArrayList<Integer> deactivatedDates = new ArrayList<>() ;
+  ArrayList<Integer> deactivatedDates ;
   private Locale locale;
   private TimeZone timeZone;
   private DateFormat monthNameFormat;
@@ -135,6 +135,16 @@ public class CalendarPickerView extends ListView {
     setCacheColorHint(bg);
     timeZone = TimeZone.getDefault();
     locale = Locale.getDefault();
+    today = Calendar.getInstance(timeZone, locale);
+    minCal = Calendar.getInstance(timeZone, locale);
+    maxCal = Calendar.getInstance(timeZone, locale);
+    monthCounter = Calendar.getInstance(timeZone, locale);
+    monthNameFormat = new SimpleDateFormat("LLLL", locale);
+    monthNameFormat.setTimeZone(timeZone);
+    weekdayNameFormat = new SimpleDateFormat("E", locale);
+    weekdayNameFormat.setTimeZone(timeZone);
+    fullDateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, locale);
+    fullDateFormat.setTimeZone(timeZone);
 
     if (isInEditMode()) {
       Calendar nextYear = Calendar.getInstance(timeZone, locale);
@@ -163,7 +173,7 @@ public class CalendarPickerView extends ListView {
    * @param maxDate Latest selectable date, exclusive.  Must be later than {@code minDate}.
    */
   @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-  public FluentInitializer init(Date minDate, Date maxDate, TimeZone timeZone, Locale locale, DateFormat monthNameFormat) {
+  public FluentInitializer init(@NonNull Date minDate, @NonNull Date maxDate, TimeZone timeZone, Locale locale, @Nullable SimpleDateFormat monthNameFormat, @Nullable SimpleDateFormat weekdayNameFormat) {
     if (minDate == null || maxDate == null) {
       throw new IllegalArgumentException(
           "minDate and maxDate must be non-null.  " + dbg(minDate, maxDate));
@@ -186,10 +196,12 @@ public class CalendarPickerView extends ListView {
     minCal = Calendar.getInstance(timeZone, locale);
     maxCal = Calendar.getInstance(timeZone, locale);
     monthCounter = Calendar.getInstance(timeZone, locale);
-    this.monthNameFormat = monthNameFormat;
+    monthNameFormat = monthNameFormat == null ? new SimpleDateFormat("LLLL", locale) : monthNameFormat;
     monthNameFormat.setTimeZone(timeZone);
-    weekdayNameFormat =
-        new SimpleDateFormat("E", locale);
+    for (MonthDescriptor month : months) {
+      month.setLabel(monthNameFormat.format(month.getDate()));
+    }
+    weekdayNameFormat = weekdayNameFormat == null ? new SimpleDateFormat("E", locale) : weekdayNameFormat;
     weekdayNameFormat.setTimeZone(timeZone);
     fullDateFormat = DateFormat.getDateInstance(DateFormat.MEDIUM, locale);
     fullDateFormat.setTimeZone(timeZone);
@@ -212,7 +224,7 @@ public class CalendarPickerView extends ListView {
 
     // maxDate is exclusive: bump back to the previous day so if maxDate is the first of a month,
     // we don't accidentally include that month in the view.
-    maxCal.add(MILLISECOND, -1);
+    maxCal.add(MINUTE, -1);
 
     // Now iterate between minCal and maxCal and build up our list of months to show.
     monthCounter.setTime(minCal.getTime());
@@ -236,22 +248,18 @@ public class CalendarPickerView extends ListView {
   }
 
 
-  public FluentInitializer init(Date minDate, Date maxDate) {
-    return init(minDate, maxDate, TimeZone.getDefault(), Locale.getDefault(), new SimpleDateFormat("MMMM", Locale.getDefault()));
+  public FluentInitializer init(@NonNull Date minDate, @NonNull Date maxDate) {
+    return init(minDate, maxDate, TimeZone.getDefault(), Locale.getDefault(), null, null);
   }
 
 
-  public FluentInitializer init(Date minDate, Date maxDate, TimeZone timeZone) {
-    return init(minDate, maxDate, timeZone, Locale.getDefault(), new SimpleDateFormat("MMMM", Locale.getDefault()));
-  }
-
-  public FluentInitializer init(Date minDate, Date maxDate, DateFormat monthNameFormat) {
-    return init(minDate, maxDate, TimeZone.getDefault(), Locale.getDefault(), monthNameFormat);
+  public FluentInitializer init(@NonNull Date minDate, @NonNull Date maxDate, TimeZone timeZone) {
+    return init(minDate, maxDate, timeZone, Locale.getDefault(), null, null);
   }
 
 
-  public FluentInitializer init(Date minDate, Date maxDate, Locale locale) {
-    return init(minDate, maxDate, TimeZone.getDefault(), locale, new SimpleDateFormat("MMMM", locale));
+  public FluentInitializer init(@NonNull Date minDate, @NonNull Date maxDate, Locale locale) {
+    return init(minDate, maxDate, TimeZone.getDefault(), locale, null, null);
   }
 
   public class FluentInitializer {
@@ -277,7 +285,7 @@ public class CalendarPickerView extends ListView {
       }
       if (selectedDates != null) {
         for (Date date : selectedDates) {
-          selectDate(date);
+          //selectDate(date);
         }
       }
       scrollToSelectedDates();
@@ -300,8 +308,7 @@ public class CalendarPickerView extends ListView {
     public FluentInitializer setShortWeekdays(String[] newShortWeekdays) {
       DateFormatSymbols symbols = new DateFormatSymbols(locale);
       symbols.setShortWeekdays(newShortWeekdays);
-      weekdayNameFormat =
-          new SimpleDateFormat("E", symbols);
+      weekdayNameFormat = new SimpleDateFormat("E", symbols);
       return this;
     }
 
@@ -493,7 +500,7 @@ public class CalendarPickerView extends ListView {
       calendar.setTime(clickedDate);
 
       int day = calendar.get(DAY_OF_WEEK);
-      if(deactivatedDates.contains(day)){
+      if(deactivatedDates != null && deactivatedDates.contains(day)){
         return;
       }
 
@@ -612,7 +619,7 @@ public class CalendarPickerView extends ListView {
                   singleCell.setUnavailable(true);
                   singleCell.setHighlighted(false);
                   selectedCells.add(singleCell);
-                }else if(!deactivatedDates.contains(singleCell.getDate().getDay()+1)){
+                }else {
                   singleCell.setSelected(true);
                   singleCell.setRangeState(RangeState.MIDDLE);
                   selectedCells.add(singleCell);
@@ -702,7 +709,7 @@ public class CalendarPickerView extends ListView {
     validateAndUpdate();
   }
 
-  public void deactivateDates(ArrayList<Integer> deactivatedDates){
+  public void deactivateDates(List<Integer> deactivatedDates){
     this.deactivatedDates = deactivatedDates;
     validateAndUpdate();
   }
@@ -782,7 +789,6 @@ public class CalendarPickerView extends ListView {
     }
 
     @Override public View getView(int position, View convertView, ViewGroup parent) {
-      //Logr.d("Adaper Position ==>" + position);
       MonthView monthView = (MonthView) convertView;
       if (monthView == null //
           || !monthView.getTag(R.id.day_view_adapter_class).equals(dayViewAdapter.getClass())) {
